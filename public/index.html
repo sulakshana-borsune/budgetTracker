@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#317EFB">
+  <link rel="shortcut icon" href="icons/icon-192x192.png" type="image/x-icon">
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="styles.css">
+
+  <title>Budget Tracker</title>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="total">
+      <div class="total">Your total is: $<span id="total">0</span></div>
+    </div>
+
+    <div class="form">
+      <input type="text" id="t-name" placeholder="Name of transaction" />
+      <input type="number" min="0" id="t-amount" placeholder="Transaction amount" />
+      <button id="add-btn"><i class="fa fa-plus buttons"></i> Add Funds</button>
+      <button id="sub-btn"><i class="fa fa-minus"></i> Subtract Funds</button>
+      <p class="error"></p>
+    </div>
+
+    <div class="transactions">
+      <table>
+        <thead>
+          <th>Transaction</th>
+          <th>Amount</th>
+        </thead>
+        <tbody id="tbody">
+          
+        </tbody>
+      </table>
+    </div>
+    
+    <canvas id="myChart"></canvas>
+  </div>
+  
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+      let db
+
+const request = indexedDB.open('budgetdb', 1)
+
+const checkDatabase = () => {
+  const transaction = db.transaction(['transactions'], 'readwrite')
+  const store = transaction.objectStore('transactions')
+
+  const getAll = store.getAll()
+
+  getAll.onsuccess = () => {
+    if (getAll.result.length > 0) {
+      axios.post('/api/transactions', getAll.result)
+        .then(() => {
+          const transaction = db.transaction(['transactions'], 'readwrite')
+          const store = transaction.objectStore('transactions')
+          store.clear()
+        })
+    }
+  }
+}
+
+const saveTransaction =  Transaction=> {
+  const transaction = db.transaction(['transactions'], 'readwrite')
+  const store = transaction.objectStore('transactions')
+  store.add(Transaction)
+}
+
+const modifyTransaction = (text, isDone) => {
+  const transaction = db.transaction(['transactions'], 'readwrite')
+  const store = transaction.objectStore('transactions')
+
+  const cursorRequest = store.openCursor()
+
+  cursorRequest.onsuccess = event => {
+    const cursor = event.target.result
+
+    if (cursor) {
+      if (cursor.value.text === text) {
+        let Transaction = cursor.value
+        Transaction.isDone = isDone
+        cursor.update(Transaction)
+      }
+      cursor.continue()
+    }
+  }
+}
+
+request.onupgradeneeded = event => {
+  const db = event.target.result
+
+  db.createObjectStore('transactions')
+}
+
+request.onsuccess = event => {
+  db = event.target.result
+
+  if (navigator.onLine) {
+    checkDatabase
+  }
+}
+
+</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+  <script src="index.js"></script>
+</body>
+</html>
