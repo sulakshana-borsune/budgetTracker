@@ -40,75 +40,8 @@
     
     <canvas id="myChart"></canvas>
   </div>
-  
-  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-
-<script>
-      let db
-
-const request = indexedDB.open('budgetdb', 1)
-
-const checkDatabase = () => {
-  const transaction = db.transaction(['transactions'], 'readwrite')
-  const store = transaction.objectStore('transactions')
-
-  const getAll = store.getAll()
-
-  getAll.onsuccess = () => {
-    if (getAll.result.length > 0) {
-      axios.post('/api/transactions', getAll.result)
-        .then(() => {
-          const transaction = db.transaction(['transactions'], 'readwrite')
-          const store = transaction.objectStore('transactions')
-          store.clear()
-        })
-    }
-  }
-}
-
-const saveTransaction =  Transaction=> {
-  const transaction = db.transaction(['transactions'], 'readwrite')
-  const store = transaction.objectStore('transactions')
-  store.add(Transaction)
-}
-
-const modifyTransaction = (text, isDone) => {
-  const transaction = db.transaction(['transactions'], 'readwrite')
-  const store = transaction.objectStore('transactions')
-
-  const cursorRequest = store.openCursor()
-
-  cursorRequest.onsuccess = event => {
-    const cursor = event.target.result
-
-    if (cursor) {
-      if (cursor.value.text === text) {
-        let Transaction = cursor.value
-        Transaction.isDone = isDone
-        cursor.update(Transaction)
-      }
-      cursor.continue()
-    }
-  }
-}
-
-request.onupgradeneeded = event => {
-  const db = event.target.result
-
-  db.createObjectStore('transactions')
-}
-
-request.onsuccess = event => {
-  db = event.target.result
-
-  if (navigator.onLine) {
-    checkDatabase
-  }
-}
-
-</script>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
   <script src="index.js"></script>
 </body>
 </html>
